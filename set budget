@@ -1,0 +1,45 @@
+def get_amount(text):
+    while True:
+        value = input(text)
+        if value == "":
+            return None
+        try:
+            value = float(value)
+        except ValueError:
+            print("Please enter a number.")
+            continue
+        if value <= 0:
+            print("Please enter a number above 0.")
+            continue
+        return value
+
+def set_budget():
+
+    budgets = {}
+
+    print("Set your budget. Leave the category empty when you are done.")
+    while True:
+        category = input("Category (ex: Food): ").strip().title()
+        if category == "":
+            if len(budgets) == 0:
+                print("Please set at least one category.")
+                continue
+            break
+
+        daily = get_amount("Daily limit (blank to skip): ")
+        monthly = get_amount("Monthly limit (blank to skip): ")
+
+        if daily is None and monthly is None:
+            print("You didn't enter any limit, try again.")
+            continue
+        if daily is not None and monthly is not None and daily > monthly:
+            print("Daily can't be higher than monthly, try again.")
+            continue
+
+        budgets[category] = {"daily": daily, "monthly": monthly}
+        print("Saved", category)
+
+    return budgets
+
+budgets = set_budget()
+print(budgets)
