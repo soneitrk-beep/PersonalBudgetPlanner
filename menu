@@ -1,6 +1,7 @@
 from set budget import get_category
 
 
+
 def budget_menu():
     budgets = {}
     while True:
