@@ -1,11 +1,4 @@
-from set_budget import get_category
-from set_budget import get_currency
-from set_budget import get_amount
-from set_budget import get_other_name
-from set_budget import edit_budget
-from set_budget import set_budget
-from set_budget import money
-from set_budget import show_budget
+from set_budget import *
 
 
 
