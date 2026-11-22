@@ -1,45 +1,154 @@
+categories = ["Food", "Transport", "Study", "Shopping", "Bills", "Health", "Entertainment", "Others"]
+letters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ "
+
+def get_category():
+    while True:
+        print("\nCategories:")
+        number = 1
+        for name in categories:
+            print(f"{number}. {name}")
+            number += 1
+        choice = input("Enter a number (blank to finish): ")
+        if choice == "":
+            return None
+        try:
+            number = int(choice)
+        except ValueError:
+            number = 0
+        if number >= 1 and number <= len(categories):
+            return categories[number - 1]
+        print("Please pick a number from the list.")
+
+def get_currency():
+    print("\nCurrency:")
+    print("1. Riel")
+    print("2. Dollar")
+    while True:
+        choice = input("Enter a number (blank to go back): ")
+        if choice == "":
+            return None
+        if choice == "1":
+            return "Riel"
+        if choice == "2":
+            return "Dollar"
+        print("Please enter 1 or 2.")
+
 def get_amount(text):
     while True:
         value = input(text)
         if value == "":
             return None
         try:
-            value = float(value)
+            value = round(float(value), 2)
         except ValueError:
             print("Please enter a number.")
             continue
-        if value <= 0:
-            print("Please enter a number above 0.")
-            continue
-        return value
+        if value > 0 and value <= 1000000000:
+            return value
+        print("Please enter a number above 0 (max 1000000000).")
 
-def set_budget():
-
-    budgets = {}
-
-    print("Set your budget. Leave the category empty when you are done.")
+def get_other_name():
     while True:
-        category = input("Category (ex: Food): ").strip().title()
-        if category == "":
-            if len(budgets) == 0:
-                print("Please set at least one category.")
-                continue
-            break
+        name = input("Type your category name, ex: Gym (blank to go back): ")
+        if name == "":
+            return None
+        if name[0] == " " or name[-1] == " ":
+            print("No spaces at the start or the end.")
+            continue
+        only_letters = True
+        for character in name:
+            if character not in letters:
+                only_letters = False
+        if only_letters == False:
+            print("Letters only, no numbers or symbols.")
+        elif name in categories:
+            print("That name is already in the list, type a different one.")
+        else:
+            return name
 
-        daily = get_amount("Daily limit (blank to skip): ")
-        monthly = get_amount("Monthly limit (blank to skip): ")
+def edit_budget(budgets):
+    # add new categories or change old ones
+    while True:
+        category = get_category()
+        if category is None:
+            return budgets
+        if category == "Others":
+            category = get_other_name()
+            if category is None:
+                continue
+
+        currency = get_currency()
+        if currency is None:
+            continue
+
+        daily = get_amount(f"{category} daily limit in {currency} (blank to skip): ")
+        monthly = get_amount(f"{category} monthly limit in {currency} (blank to skip): ")
 
         if daily is None and monthly is None:
-            print("You didn't enter any limit, try again.")
-            continue
-        if daily is not None and monthly is not None and daily > monthly:
-            print("Daily can't be higher than monthly, try again.")
-            continue
+            print("No limit entered, nothing saved.")
+        elif daily is not None and monthly is not None and daily > monthly:
+            print("Daily can't be higher than monthly.")
+        else:
+            budgets[category] = {"daily": daily, "monthly": monthly, "currency": currency}
+            print("Saved", category)
 
-        budgets[category] = {"daily": daily, "monthly": monthly}
-        print("Saved", category)
-
+def set_budget():
+    # budgets looks like this (None means no limit):
+    # {"Food": {"daily": 10.0, "monthly": 250.0, "currency": "Dollar"}}
+    # it is empty {} if nothing was saved
+    budgets = {}
+    edit_budget(budgets)
     return budgets
 
-budgets = set_budget()
-print(budgets)
+def money(amount, currency):
+    if amount is None:
+        return "-"
+    if currency == "Dollar":
+        return f"${amount:.2f}"
+    return f"{int(amount)}៛"
+
+def show_budget(budgets):
+    print("\nYour budget:")
+    for category in budgets:
+        limits = budgets[category]
+        daily = money(limits["daily"], limits["currency"])
+        monthly = money(limits["monthly"], limits["currency"])
+        print(f"{category}: daily {daily} | monthly {monthly}")
+
+def budget_menu():
+    budgets = {}
+    while True:
+        print("\n===== Budget Menu =====")
+        print("1. Set new budget")
+        print("2. Add or change budget")
+        print("3. Show budget")
+        print("4. Exit")
+        choice = input("Enter your choice: ")
+
+        if choice == "1":
+            if len(budgets) > 0:
+                answer = input("This replaces your budget. Continue? (y/n): ")
+                if answer != "y" and answer != "Y":
+                    continue
+            new_budget = set_budget()
+            if len(new_budget) > 0:
+                budgets = new_budget
+            else:
+                print("Nothing was saved.")
+        elif choice == "2":
+            if len(budgets) == 0:
+                print("Please set a budget first (option 1).")
+            else:
+                edit_budget(budgets)
+        elif choice == "3":
+            if len(budgets) == 0:
+                print("Please set a budget first (option 1).")
+            else:
+                show_budget(budgets)
+        elif choice == "4":
+            print("Thank you for using this program.")
+            return budgets
+        else:
+            print("Please enter a number from 1 to 4.")
+
+budgets = budget_menu()
